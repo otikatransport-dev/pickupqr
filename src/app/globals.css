@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* ---- Otika brand tokens -------------------------------------------------
+   Placeholder palette (deep navy + amber). Swap these 4 values for the exact
+   Otika brand colours and the whole app follows. */
+:root {
+  --brand: #12284c;
+  --brand-hover: #0c1c38;
+  --brand-soft: #e8edf6;
+  --accent: #f2a31b;
+  --background: #f4f6fa;
+  --foreground: #101828;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* cool slate greys instead of pure neutrals */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-900: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand: #3b6fd4;
+    --brand-hover: #5a88e3;
+    --brand-soft: #1b2a47;
+    --background: #0b1220;
+    --foreground: #e6ebf5;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@utility card {
+    @apply rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)];
+}
+@utility card-link {
+    @apply card block p-4 transition hover:border-brand/40 hover:shadow-md active:scale-[0.99];
+}
+@utility btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50;
+}
+@utility btn-primary {
+    @apply btn bg-brand text-white hover:bg-brand-hover;
+}
+@utility btn-secondary {
+    @apply btn border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100;
+}
+@utility field {
+    @apply min-h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20;
+  }
+
+@media (prefers-color-scheme: dark) {
+  .card { background: #131c30; border-color: #24304a; }
+  .btn-secondary, .field { background: #131c30; border-color: #2f3d5c; color: #e6ebf5; }
+}

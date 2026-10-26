@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.env.local
+.env*.local
+*.tsbuildinfo
+npm-debug.log*
+
+# Unrelated leftover folder with its own nested git repo — not part of this project
+/pickupqr-foundation/
+
+.vercel
+.env*
+.claude/
