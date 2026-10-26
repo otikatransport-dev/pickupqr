@@ -237,6 +237,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      app_settings: {
+        Row: {
+          id: number;
+          app_name: string;
+          brand_color: string;
+          accent_color: string;
+          logo_url: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: never;
+        Update: {
+          app_name?: string;
+          brand_color?: string;
+          accent_color?: string;
+          logo_url?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       plannings: {
         Row: {
           id: string;

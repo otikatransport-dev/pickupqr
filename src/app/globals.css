@@ -4,10 +4,15 @@
    Placeholder palette (deep navy + amber). Swap these 4 values for the exact
    Otika brand colours and the whole app follows. */
 :root {
-  --brand: #12284c;
-  --brand-hover: #0c1c38;
-  --brand-soft: #e8edf6;
+  /* --brand-base / --accent / --on-brand / --on-accent are injected from the Admin Centre
+     (Branding). These are only the fallbacks. */
+  --brand-base: #12284c;
+  --brand: var(--brand-base);
+  --brand-hover: color-mix(in srgb, var(--brand-base) 82%, black);
+  --brand-soft: color-mix(in srgb, var(--brand-base) 10%, white);
   --accent: #f2a31b;
+  --on-brand: #ffffff;
+  --on-accent: #101828;
   --background: #f4f6fa;
   --foreground: #101828;
 }
@@ -34,9 +39,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --brand: #3b6fd4;
-    --brand-hover: #5a88e3;
-    --brand-soft: #1b2a47;
+    --brand: color-mix(in srgb, var(--brand-base) 55%, white);
+    --brand-hover: color-mix(in srgb, var(--brand-base) 70%, white);
+    --brand-soft: color-mix(in srgb, var(--brand-base) 35%, #0b1220);
     --background: #0b1220;
     --foreground: #e6ebf5;
   }
@@ -59,7 +64,8 @@ body {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50;
 }
 @utility btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-hover;
+    @apply btn bg-brand hover:bg-brand-hover;
+  color: var(--on-brand);
 }
 @utility btn-secondary {
     @apply btn border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100;

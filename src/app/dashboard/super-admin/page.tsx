@@ -1,33 +1,44 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui";
+
+export const metadata = { title: "Admin Centre" };
 
 export default async function SuperAdminPage() {
   const supabase = await createClient();
-  const [{ count: companies }, { count: drivers }, { count: employees }] = await Promise.all([
-    supabase.from("companies").select("*", { count: "exact", head: true }),
-    supabase.from("drivers").select("*", { count: "exact", head: true }),
-    supabase.from("employees").select("*", { count: "exact", head: true }),
+  const c = (t: "companies" | "drivers" | "employees" | "boarding_points") =>
+    supabase.from(t).select("*", { count: "exact", head: true });
+  const [{ count: companies }, { count: drivers }, { count: employees }, { count: points }] = await Promise.all([
+    c("companies"), c("drivers"), c("employees"), c("boarding_points"),
   ]);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Super Admin</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Foundation phase — company/driver/employee management UI lands in the next phase.
-      </p>
-      <div className="mt-6 grid grid-cols-3 gap-3">
+      <PageHeader title="Admin Centre" subtitle="Change how the app looks and manage all of your data." />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Companies" value={companies ?? 0} />
         <Stat label="Drivers" value={drivers ?? 0} />
         <Stat label="Employees" value={employees ?? 0} />
+        <Stat label="Boarding points" value={points ?? 0} />
       </div>
-      <Link
-        href="/dashboard/company-admin/planning"
-        className="mt-6 card-link"
-      >
-        <p className="font-medium">Planning</p>
-        <p className="text-sm text-neutral-500">Send drivers their shifts and see who has received them.</p>
-      </Link>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <Tile href="/dashboard/super-admin/branding" title="Branding" text="App name, logo and colours." />
+        <Tile href="/dashboard/super-admin/companies" title="Companies" text="Add companies, set their colour, create their admins." />
+        <Tile href="/dashboard/company-admin/drivers" title="Drivers" text="Create driver logins and set phone numbers." />
+        <Tile href="/dashboard/company-admin/employees" title="Employees" text="Add the people who ride and manage their QR codes." />
+        <Tile href="/dashboard/company-admin/boarding-points" title="Boarding points" text="Pick-up locations for each company." />
+        <Tile href="/dashboard/company-admin/planning" title="Planning" text="Send drivers their shifts and see who received them." />
+      </div>
     </div>
+  );
+}
+
+function Tile({ href, title, text }: { href: string; title: string; text: string }) {
+  return (
+    <Link href={href} className="card-link">
+      <p className="font-medium">{title}</p>
+      <p className="text-sm text-neutral-500">{text}</p>
+    </Link>
   );
 }
 
