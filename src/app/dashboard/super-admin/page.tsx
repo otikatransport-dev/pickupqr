@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui";
+import { ADMIN_NAV } from "@/lib/admin-nav";
 
 export const metadata = { title: "Admin Centre" };
 
@@ -22,12 +23,9 @@ export default async function SuperAdminPage() {
         <Stat label="Boarding points" value={points ?? 0} />
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Tile href="/dashboard/super-admin/branding" title="Branding" text="App name, logo and colours." />
-        <Tile href="/dashboard/super-admin/companies" title="Companies" text="Add companies, set their colour, create their admins." />
-        <Tile href="/dashboard/company-admin/drivers" title="Drivers" text="Create driver logins and set phone numbers." />
-        <Tile href="/dashboard/company-admin/employees" title="Employees" text="Add the people who ride and manage their QR codes." />
-        <Tile href="/dashboard/company-admin/boarding-points" title="Boarding points" text="Pick-up locations for each company." />
-        <Tile href="/dashboard/company-admin/planning" title="Planning" text="Send drivers their shifts and see who received them." />
+        {ADMIN_NAV.filter((i) => i.roles.includes("super_admin")).map((i) => (
+          <Tile key={i.href} href={i.href} title={i.title} text={i.text} />
+        ))}
       </div>
     </div>
   );
