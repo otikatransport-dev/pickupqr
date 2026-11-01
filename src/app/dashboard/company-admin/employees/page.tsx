@@ -7,7 +7,7 @@ export const metadata = { title: "Employees" };
 
 export default async function EmployeesPage() {
   const { supabase, isSuper, companies, companyId } = await getAdminContext();
-  const { data } = await supabase.from("employees").select("id, name, phone_normalized, company_id, active").order("name");
+  const { data } = await supabase.from("employees").select("id, name, phone_normalized, company_id, active, qr_token, qr_generated_at").order("name");
   return (
     <div>
       <PageHeader title="Employees" subtitle="People who ride. Each one gets a personal QR code that drivers scan." backHref={isSuper ? "/dashboard/super-admin" : "/dashboard/company-admin"} />

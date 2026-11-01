@@ -78,3 +78,11 @@ body {
   .card { background: #131c30; border-color: #24304a; }
   .btn-secondary, .field { background: #131c30; border-color: #2f3d5c; color: #e6ebf5; }
 }
+
+/* Printing QR cards: show only the cards, three per row, never split a card across pages. */
+@media print {
+  body * { visibility: hidden; }
+  .qr-print, .qr-print * { visibility: visible; }
+  .qr-print { position: absolute; left: 0; top: 0; width: 100%; grid-template-columns: repeat(3, 1fr) !important; }
+  .qr-card { break-inside: avoid; border-color: #999; }
+}

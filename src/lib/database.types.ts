@@ -165,6 +165,7 @@ export interface Database {
           company_id: string | null;
           qr_token: string;
           qr_image_url: string | null;
+          qr_generated_at: string | null;
           last_scanned_at: string | null;
           active: boolean;
           created_at: string;
@@ -181,6 +182,7 @@ export interface Database {
           name?: string;
           company_id?: string | null;
           qr_image_url?: string | null;
+          qr_generated_at?: string | null;
           last_scanned_at?: string | null;
           active?: boolean;
         };

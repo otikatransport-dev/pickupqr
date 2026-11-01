@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import QrImage from "@/components/qr-image";
 
 export default async function EmployeePage() {
   const supabase = await createClient();
@@ -8,7 +9,7 @@ export default async function EmployeePage() {
 
   const { data: employee } = await supabase
     .from("employees")
-    .select("name, phone_normalized, qr_image_url, company_id")
+    .select("name, phone_normalized, qr_token, qr_generated_at")
     .eq("profile_id", user!.id)
     .maybeSingle();
 
@@ -16,12 +17,14 @@ export default async function EmployeePage() {
     <div>
       <h1 className="text-2xl font-bold tracking-tight">My QR pass</h1>
       {employee ? (
-        <div className="mt-4 max-w-xs card p-4">
+        <div className="card mt-4 flex max-w-xs flex-col items-center p-4 text-center">
           <p className="font-medium">{employee.name}</p>
           <p className="text-sm text-neutral-500">{employee.phone_normalized}</p>
-          <p className="mt-3 text-xs text-neutral-400">
-            QR image generation is built in the Employee Directory phase.
-          </p>
+          {employee.qr_generated_at ? (
+            <div className="mt-3"><QrImage token={employee.qr_token} size={240} label={employee.name} /></div>
+          ) : (
+            <p className="mt-3 text-sm text-neutral-500">Your QR code has not been generated yet. Ask your company admin.</p>
+          )}
         </div>
       ) : (
         <p className="mt-4 text-sm text-neutral-500">
