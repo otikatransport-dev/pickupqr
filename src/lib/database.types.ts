@@ -45,6 +45,10 @@ export interface Database {
           color: string | null;
           logo_url: string | null;
           address: string | null;
+          metro_aller: string | null;
+          metro_retour: string | null;
+          contact: string | null;
+          notes: string | null;
           created_at: string;
         };
         Insert: {
@@ -52,12 +56,20 @@ export interface Database {
           color?: string | null;
           logo_url?: string | null;
           address?: string | null;
+          metro_aller?: string | null;
+          metro_retour?: string | null;
+          contact?: string | null;
+          notes?: string | null;
         };
         Update: {
           name?: string;
           color?: string | null;
           logo_url?: string | null;
           address?: string | null;
+          metro_aller?: string | null;
+          metro_retour?: string | null;
+          contact?: string | null;
+          notes?: string | null;
         };
         Relationships: [];
       };

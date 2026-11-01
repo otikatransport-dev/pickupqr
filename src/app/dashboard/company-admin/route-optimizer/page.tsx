@@ -1,23 +1,24 @@
 import { getAdminContext } from "@/lib/admin-context";
 import { PageHeader } from "@/components/ui";
+import RouteOptimizer, { type CompanyRoute } from "./route-optimizer";
 
 export const metadata = { title: "Route Optimizer" };
 
 export default async function RouteOptimizerPage() {
-  const { isSuper } = await getAdminContext();
+  const { supabase, isSuper } = await getAdminContext();
+  const { data } = await supabase
+    .from("companies")
+    .select("id, name, address, metro_aller, metro_retour, contact, notes, color")
+    .order("name");
   return (
-    <div>
+    // The page needs more room than the other admin screens, so it breaks out of the narrow column.
+    <div className="relative left-1/2 w-[min(72rem,calc(100vw-2rem))] -translate-x-1/2">
       <PageHeader
         title="Route Optimizer"
-        subtitle="Plan the best order of stops for each route."
+        subtitle="Panneau Trajets — ramassage et dépôt au métro pour chaque entreprise."
         backHref={isSuper ? "/dashboard/super-admin" : "/dashboard/company-admin"}
       />
-      <div className="card p-6 text-center">
-        <p className="text-base font-semibold">Coming soon</p>
-        <p className="mt-1 text-sm text-neutral-500">
-          This page is ready and waiting for its content. Once the Route Optimizer design is added, it will appear here.
-        </p>
-      </div>
+      <RouteOptimizer initial={(data ?? []) as CompanyRoute[]} isSuper={isSuper} />
     </div>
   );
 }
