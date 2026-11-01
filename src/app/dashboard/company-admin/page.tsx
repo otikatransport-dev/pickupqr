@@ -13,22 +13,20 @@ export default async function CompanyAdminPage() {
   const { data: profile } = await supabase.from("profiles").select("role, company_id").eq("id", user!.id).single();
   const cid = profile?.company_id ?? "";
 
-  const [{ count: drivers }, { count: employees }, { count: points }] = await Promise.all([
-    supabase.from("drivers").select("*", { count: "exact", head: true }).eq("company_id", cid),
+  const [{ count: employees }, { count: points }] = await Promise.all([
     supabase.from("employees").select("*", { count: "exact", head: true }).eq("company_id", cid),
     supabase.from("boarding_points").select("*", { count: "exact", head: true }).eq("company_id", cid),
   ]);
 
   return (
     <div>
-      <PageHeader title="Company Admin" subtitle="Manage your drivers, employees and boarding points." />
+      <PageHeader title="Company Admin" subtitle="Manage your employees and boarding points." />
       {!profile?.company_id && (
         <p className="mb-4 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Your account isn&apos;t linked to a company yet. Ask a super admin to link it.
         </p>
       )}
-      <div className="grid grid-cols-3 gap-3">
-        <Stat label="Drivers" value={drivers ?? 0} />
+      <div className="grid grid-cols-2 gap-3">
         <Stat label="Employees" value={employees ?? 0} />
         <Stat label="Boarding points" value={points ?? 0} />
       </div>

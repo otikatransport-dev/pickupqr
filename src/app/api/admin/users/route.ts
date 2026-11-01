@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AppRole } from "@/lib/database.types";
+import { toWhatsAppNumber } from "@/lib/phone";
 
 /**
  * Admin Centre: create / reset / delete login accounts for drivers and company admins.
  * Needs the service-role key (Supabase Auth admin API), so it only ever runs here on the
  * server, and only for a signed-in super admin or company admin:
  *  - super admin: may manage drivers and company admins in any company
- *  - company admin: may manage drivers in their OWN company only
+ *  - company admin: cannot create or remove logins
  */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,10 +31,10 @@ async function caller() {
 }
 
 /** May this caller manage a user with this role in this company? */
-function mayManage(c: { role: AppRole; companyId: string | null }, targetRole: AppRole, targetCompany: string | null) {
+function mayManage(c: { role: AppRole; companyId: string | null }, targetRole: AppRole) {
   if (!MANAGEABLE.includes(targetRole)) return false;
-  if (c.role === "super_admin") return true;
-  return c.role === "company_admin" && targetRole === "driver" && !!c.companyId && c.companyId === targetCompany;
+  // Drivers belong to no company, so only super admins manage them. Company admins manage no one.
+  return c.role === "super_admin";
 }
 
 export async function POST(request: Request) {
@@ -50,22 +51,28 @@ export async function POST(request: Request) {
   const email = String(body.email ?? "").trim().toLowerCase();
   const password = String(body.password ?? "");
   const fullName = String(body.fullName ?? "").trim();
-  const phone = String(body.phone ?? "").trim() || null;
-  const vehicle = String(body.vehicleNumber ?? "").trim() || null;
+  const phoneRaw = String(body.phone ?? "").trim();
   const role = String(body.role ?? "") as AppRole;
   const companyId = String(body.companyId ?? "");
+  // Drivers are not tied to a company when created: the driver picks the company, and enters the
+  // vehicle number, each time they plan a route.
+  const isDriver = role === "driver";
 
   if (!EMAIL.test(email) || email.length > 200) return fail(400, "invalid_email");
   if (password.length < 8 || password.length > 72) return fail(400, "invalid_password", "Use 8 to 72 characters.");
   if (!fullName || fullName.length > 100) return fail(400, "invalid_name");
-  if (phone && phone.length > 30) return fail(400, "invalid_phone");
-  if (vehicle && vehicle.length > 30) return fail(400, "invalid_vehicle");
-  if (!UUID.test(companyId)) return fail(400, "company_required");
-  if (!mayManage(c, role, companyId)) return fail(403, "forbidden");
+  const digits = toWhatsAppNumber(phoneRaw);
+  if (isDriver && !digits) return fail(400, "invalid_phone", "A valid phone number is required.");
+  if (!isDriver && phoneRaw && !digits) return fail(400, "invalid_phone");
+  const phone = digits ? "+" + digits : null;
+  if (!isDriver && !UUID.test(companyId)) return fail(400, "company_required");
+  if (!mayManage(c, role)) return fail(403, "forbidden");
 
   const admin = createAdminClient();
-  const { data: company } = await admin.from("companies").select("id").eq("id", companyId).maybeSingle();
-  if (!company) return fail(400, "company_not_found");
+  if (!isDriver) {
+    const { data: company } = await admin.from("companies").select("id").eq("id", companyId).maybeSingle();
+    if (!company) return fail(400, "company_not_found");
+  }
 
   const created = await admin.auth.admin.createUser({
     email,
@@ -85,10 +92,10 @@ export async function POST(request: Request) {
     await admin.auth.admin.deleteUser(userId); // cascades to profile + driver rows
     return fail(500, "setup_failed", detail);
   };
-  const prof = await admin.from("profiles").update({ company_id: companyId, phone, full_name: fullName, role }).eq("id", userId);
+  const prof = await admin.from("profiles").update({ company_id: isDriver ? null : companyId, phone, full_name: fullName, role }).eq("id", userId);
   if (prof.error) return rollback(prof.error.message);
-  if (role === "driver") {
-    const drv = await admin.from("drivers").insert({ profile_id: userId, company_id: companyId, vehicle_number: vehicle, phone });
+  if (isDriver) {
+    const drv = await admin.from("drivers").insert({ profile_id: userId, company_id: null, vehicle_number: null, phone });
     if (drv.error) return rollback(drv.error.message);
   }
   return NextResponse.json({ ok: true, userId });
@@ -103,7 +110,7 @@ async function authorizeTarget(userId: string) {
   const admin = createAdminClient();
   const { data: target } = await admin.from("profiles").select("role, company_id").eq("id", userId).maybeSingle();
   if (!target) return { error: fail(404, "not_found") } as const;
-  if (!mayManage(c, target.role as AppRole, target.company_id)) return { error: fail(403, "forbidden") } as const;
+  if (!mayManage(c, target.role as AppRole)) return { error: fail(403, "forbidden") } as const;
   return { admin } as const;
 }
 
