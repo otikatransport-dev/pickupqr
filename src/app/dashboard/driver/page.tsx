@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import AvatarUploader from "@/components/avatar-uploader";
 
 export default async function DriverPage() {
   const supabase = await createClient();
@@ -13,14 +14,22 @@ export default async function DriverPage() {
     .eq("profile_id", user!.id)
     .single();
 
+  const { data: me } = await supabase.from("profiles").select("full_name, phone, avatar_url").eq("id", user!.id).single();
+
   const { data: routes } = driver
     ? await supabase.from("routes").select("id, status, boarding_point_id").eq("driver_id", driver.id)
     : { data: [] };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">My routes</h1>
-      <p className="mt-1 text-sm text-neutral-500">Vehicle: {driver?.vehicle_number ?? "not assigned"}</p>
+      <section className="card p-4">
+        <h2 className="mb-3 text-base font-semibold">My profile</h2>
+        <AvatarUploader userId={user!.id} name={me?.full_name ?? user!.email ?? "Driver"} url={me?.avatar_url ?? null} />
+        <p className="mt-3 text-sm font-medium">{me?.full_name}</p>
+        {me?.phone && <p className="text-sm text-neutral-500">{me.phone}</p>}
+      </section>
+      <h1 className="mt-6 text-2xl font-bold tracking-tight">My routes</h1>
+      <p className="mt-1 text-sm text-neutral-500">You choose the company and enter your vehicle number when you plan a route.</p>
       <Link
         href="/dashboard/driver/planning"
         className="mt-4 card-link"

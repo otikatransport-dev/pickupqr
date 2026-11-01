@@ -21,6 +21,7 @@ export interface Database {
           phone: string | null;
           role: AppRole;
           company_id: string | null;
+          avatar_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -29,12 +30,14 @@ export interface Database {
           phone?: string | null;
           role?: AppRole;
           company_id?: string | null;
+          avatar_url?: string | null;
         };
         Update: {
           full_name?: string | null;
           phone?: string | null;
           role?: AppRole;
           company_id?: string | null;
+          avatar_url?: string | null;
         };
         Relationships: [];
       };

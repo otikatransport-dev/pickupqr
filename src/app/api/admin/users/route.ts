@@ -102,16 +102,16 @@ export async function POST(request: Request) {
 }
 
 /** Look up the target the caller wants to act on, and check they are allowed to. */
-async function authorizeTarget(userId: string) {
+async function authorizeTarget(userId: string, allowSelf = false) {
   const c = await caller();
   if (c.error) return { error: c.error } as const;
   if (!UUID.test(userId)) return { error: fail(400, "invalid_user") } as const;
-  if (userId === c.user.id) return { error: fail(400, "cannot_target_self") } as const;
+  if (userId === c.user.id && !allowSelf) return { error: fail(400, "cannot_target_self") } as const;
   const admin = createAdminClient();
   const { data: target } = await admin.from("profiles").select("role, company_id").eq("id", userId).maybeSingle();
   if (!target) return { error: fail(404, "not_found") } as const;
   if (!mayManage(c, target.role as AppRole)) return { error: fail(403, "forbidden") } as const;
-  return { admin } as const;
+  return { admin, targetRole: target.role as AppRole } as const;
 }
 
 export async function PATCH(request: Request) {
@@ -121,12 +121,40 @@ export async function PATCH(request: Request) {
   } catch {
     return fail(400, "invalid_json");
   }
+  // Any of these may be sent; only the ones present are changed.
+  const has = (k: string) => body[k] !== undefined && body[k] !== null && String(body[k]).trim() !== "";
+  const fullName = String(body.fullName ?? "").trim();
+  const email = String(body.email ?? "").trim().toLowerCase();
   const password = String(body.password ?? "");
-  if (password.length < 8 || password.length > 72) return fail(400, "invalid_password", "Use 8 to 72 characters.");
-  const a = await authorizeTarget(String(body.userId ?? ""));
+  const phoneRaw = String(body.phone ?? "").trim();
+  if (body.fullName !== undefined && (!fullName || fullName.length > 100)) return fail(400, "invalid_name");
+  if (has("email") && (!EMAIL.test(email) || email.length > 200)) return fail(400, "invalid_email");
+  if (has("password") && (password.length < 8 || password.length > 72)) return fail(400, "invalid_password", "Use 8 to 72 characters.");
+  const digits = toWhatsAppNumber(phoneRaw);
+  if (body.phone !== undefined && !digits) return fail(400, "invalid_phone", "A valid phone number is required.");
+
+  const a = await authorizeTarget(String(body.userId ?? ""), true);
   if ("error" in a) return a.error;
-  const res = await a.admin.auth.admin.updateUserById(String(body.userId), { password });
-  if (res.error) return fail(502, "update_failed", res.error.message);
+  const userId = String(body.userId);
+
+  if (has("email") || has("password")) {
+    const res = await a.admin.auth.admin.updateUserById(userId, {
+      ...(has("email") ? { email, email_confirm: true } : {}),
+      ...(has("password") ? { password } : {}),
+    });
+    if (res.error) {
+      const exists = /already|registered|exists/i.test(res.error.message);
+      return fail(exists ? 409 : 502, exists ? "email_taken" : "update_failed", exists ? undefined : res.error.message);
+    }
+  }
+  const profilePatch: { full_name?: string; phone?: string } = {};
+  if (body.fullName !== undefined) profilePatch.full_name = fullName;
+  if (digits) profilePatch.phone = "+" + digits;
+  if (Object.keys(profilePatch).length) {
+    const p = await a.admin.from("profiles").update(profilePatch).eq("id", userId);
+    if (p.error) return fail(500, "update_failed", p.error.message);
+    if (profilePatch.phone && a.targetRole === "driver") await a.admin.from("drivers").update({ phone: profilePatch.phone }).eq("profile_id", userId);
+  }
   return NextResponse.json({ ok: true });
 }
 

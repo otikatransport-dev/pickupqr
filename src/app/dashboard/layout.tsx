@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./sign-out-button";
 import { getBranding } from "@/lib/branding";
 import Link from "next/link";
+import Avatar from "@/components/avatar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -14,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, company_id")
+    .select("full_name, role, company_id, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -47,6 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 </span>
               )}
             </Link>
+            {profile?.avatar_url && <Avatar url={profile.avatar_url} name={profile.full_name ?? ""} size={32} />}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight">{profile?.full_name ?? user.email}</p>
               <p className="truncate text-xs capitalize opacity-75">
