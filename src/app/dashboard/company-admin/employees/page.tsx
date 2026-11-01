@@ -1,5 +1,6 @@
 import { getAdminContext } from "@/lib/admin-context";
 import { PageHeader } from "@/components/ui";
+import Link from "next/link";
 import EmployeesManager from "./manager";
 
 export const metadata = { title: "Employees" };
@@ -10,6 +11,7 @@ export default async function EmployeesPage() {
   return (
     <div>
       <PageHeader title="Employees" subtitle="People who ride. Each one gets a personal QR code that drivers scan." backHref={isSuper ? "/dashboard/super-admin" : "/dashboard/company-admin"} />
+      <Link href="/dashboard/company-admin/employees/bulk" className="btn-secondary mb-4 inline-flex">⬆ Add employees in bulk</Link>
       <EmployeesManager initial={data ?? []} companies={companies} isSuper={isSuper} defaultCompanyId={companyId ?? companies[0]?.id ?? ""} />
     </div>
   );
