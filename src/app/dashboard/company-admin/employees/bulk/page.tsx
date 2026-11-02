@@ -5,7 +5,7 @@ import BulkEmployees from "./bulk-employees";
 export const metadata = { title: "Add employees in bulk" };
 
 export default async function BulkEmployeesPage() {
-  const { isSuper, companies, companyId } = await getAdminContext();
+  const { isSuper, companies, companyId } = await getAdminContext("employees_edit");
   return (
     <div>
       <PageHeader title="Add employees in bulk" subtitle="Bring in names, phone numbers and companies from a Google Sheet or a CSV file." />

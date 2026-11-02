@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { toWhatsAppNumber } from "@/lib/phone";
+import { can } from "@/lib/roles";
 import {
   getWhatsAppConfig,
   sendTemplateMessage,
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
   if (!user) return fail(401, "not_signed_in");
 
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (me?.role !== "super_admin" && me?.role !== "company_admin") return fail(403, "forbidden");
+  if (!can(me?.role, "planning")) return fail(403, "forbidden");
 
   // RLS: a company admin can only load plannings of their own company's drivers.
   const { data: planning } = await supabase.from("plannings").select("*").eq("id", planningId).maybeSingle();

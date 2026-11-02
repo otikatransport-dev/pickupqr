@@ -6,6 +6,7 @@
 const LABELS: Record<string, string> = {
   "/dashboard/super-admin": "Admin Centre",
   "/dashboard/company-admin": "Admin Centre",
+  "/dashboard/attendance": "Attendance",
   "/dashboard/driver": "Driver home",
   "/dashboard/employee": "Home",
   "/dashboard/company-admin/employees": "Employees",
@@ -14,10 +15,8 @@ const LABELS: Record<string, string> = {
   "/dashboard/driver/route": "My Route",
 };
 
-/** The home page for a role, as a URL. */
-export function homeFor(role: string | null | undefined): string {
-  return `/dashboard/${(role ?? "employee").replace(/_/g, "-")}`;
-}
+export { homeFor } from "@/lib/roles";
+import { homeFor } from "@/lib/roles";
 
 /** Returns the parent page and its label, or null on a home page (nothing above it). */
 export function parentOf(pathname: string, role: string | null | undefined): { href: string; label: string } | null {

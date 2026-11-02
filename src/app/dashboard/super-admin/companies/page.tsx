@@ -1,23 +1,14 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAdminContext } from "@/lib/admin-context";
 import { PageHeader } from "@/components/ui";
-import CompaniesManager, { type CompanyRow, type AdminRow } from "./companies-manager";
+import CompaniesManager, { type CompanyRow } from "./companies-manager";
 
 export const metadata = { title: "Companies" };
 
 export default async function CompaniesPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
   const { new: startNew } = await searchParams;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (me?.role !== "super_admin") redirect("/unauthorized");
-
-  const [{ data: companies }, { data: admins }, { data: linked }] = await Promise.all([
+  const { supabase, canEdit } = await getAdminContext("companies_view", "companies_edit");
+  const [{ data: companies }, { data: linked }] = await Promise.all([
     supabase.from("companies").select("id, name, code, phone, contact, lat, lng, status, color, logo_url, address").order("name"),
-    supabase.from("profiles").select("id, full_name, phone, company_id").eq("role", "company_admin").order("full_name"),
     supabase.rpc("company_linked_records"),
   ]);
   const usage = new Map((linked ?? []).map((u) => [u.company_id, u]));
@@ -35,14 +26,11 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
       stops: Number(u?.route_stops ?? 0),
     };
   });
-  const adminRows: AdminRow[] = (admins ?? []).map((a) => ({
-    id: a.id, name: a.full_name || "Unnamed", phone: a.phone, companyId: a.company_id,
-  }));
 
   return (
     <div>
-      <PageHeader title="Companies" subtitle="Add the companies you serve, set their colour, and give each one an admin login." />
-      <CompaniesManager initial={rows} admins={adminRows} startNew={startNew === "1"} />
+      <PageHeader title="Companies" subtitle="The one company list used by Route Optimizer, Planning and the driver screens." />
+      <CompaniesManager initial={rows} startNew={startNew === "1" && canEdit} canEdit={canEdit} />
     </div>
   );
 }

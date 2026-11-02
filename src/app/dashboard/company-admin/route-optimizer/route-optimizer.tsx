@@ -40,7 +40,7 @@ function loadMaps(apiKey: string, onAuthFail: () => void): Promise<void> {
   return mapsPromise;
 }
 
-export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyRoute[]; isSuper: boolean }) {
+export default function RouteOptimizer({ initial, isSuper, readOnly = false }: { initial: CompanyRoute[]; isSuper: boolean; readOnly?: boolean }) {
   const supabase = useMemo(() => createClient(), []);
   const [companies, setCompanies] = useState<CompanyRoute[]>(initial);
   const [selId, setSelId] = useState<string | null>(initial[0]?.id ?? null);
@@ -275,7 +275,7 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
         <aside className="card flex max-h-[80vh] flex-col overflow-hidden">
           <div className="flex gap-2 border-b border-neutral-200 p-3">
             <input className="field" placeholder="Rechercher une entreprise…" value={q} onChange={(e) => setQ(e.target.value)} />
-            {isSuper && <Link className="btn-primary !min-h-10 !px-3" title="Ajouter une entreprise dans la liste principale" href="/dashboard/super-admin/companies?new=1">+</Link>}
+            {isSuper && !readOnly && <Link className="btn-primary !min-h-10 !px-3" title="Ajouter une entreprise dans la liste principale" href="/dashboard/super-admin/companies?new=1">+</Link>}
           </div>
           <p className="px-3 pt-2 text-xs text-neutral-500">{rows.length} entreprise{rows.length > 1 ? "s" : ""}</p>
           {usedColors.length > 0 && (
@@ -291,7 +291,7 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
               <div key={c.id} onClick={() => setSelId(c.id)} className={`relative cursor-pointer border-b border-neutral-200 border-l-4 p-3 ${c.id === selId ? "bg-brand-soft" : "hover:bg-neutral-50"}`} style={{ borderLeftColor: c.color ?? "transparent" }}>
                 <div className="flex items-center gap-2">
                   <p className={`min-w-0 flex-1 truncate font-semibold ${c.color ? "rounded border border-black/10 px-2 py-0.5" : ""}`} style={c.color ? { background: c.color, color: textOn(c.color) } : undefined}>{c.name}</p>
-                  <button className="btn-secondary !min-h-7 !w-7 !px-0 text-xs" title="Couleur" onClick={(e) => { e.stopPropagation(); setPalFor(palFor === c.id ? null : c.id); }}>🎨</button>
+                  {!readOnly && <button className="btn-secondary !min-h-7 !w-7 !px-0 text-xs" title="Couleur" onClick={(e) => { e.stopPropagation(); setPalFor(palFor === c.id ? null : c.id); }}>🎨</button>}
                 </div>
                 {palFor === c.id && (
                   <div className="card absolute right-2 top-10 z-20 p-3 shadow-lg" onClick={(e) => e.stopPropagation()}>
@@ -323,7 +323,7 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
                   {sel.contact && <p className="mt-1 text-sm">☎ {sel.contact}</p>}
                   {sel.notes && <p className="mt-1 whitespace-pre-wrap text-sm">{sel.notes}</p>}
                 </div>
-                <button className="btn-secondary" onClick={() => openForm(sel)}>✎ Modifier</button>
+                {!readOnly && <button className="btn-secondary" onClick={() => openForm(sel)}>✎ Modifier</button>}
               </div>
               <div className="grid gap-3 md:grid-cols-2">{card("aller")}{card("retour")}</div>
               <div className="flex flex-wrap items-center gap-3 text-xs">

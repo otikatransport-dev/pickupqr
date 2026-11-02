@@ -4,9 +4,7 @@ import { useState } from "react";
 import { Label, Notice } from "@/components/ui";
 
 export interface CreateUserFormProps {
-  role: "driver" | "company_admin";
-  companyId?: string;
-  companyName?: string;
+  role: "driver";
   onCreated: () => void;
   onCancel: () => void;
 }
@@ -18,11 +16,12 @@ const ERRORS: Record<string, string> = {
   invalid_name: "Enter the person's full name.",
   invalid_phone: "Enter a valid phone number (10 digits, or + and the country code).",
   forbidden: "You are not allowed to create this account.",
-  company_not_found: "That company no longer exists.",
+  invalid_role: "That role is not valid.",
+  forbidden_role: "Only a super admin can give that role.",
 };
 
 /** Creates a login (email + temporary password) through the secure server route. */
-export default function CreateUserForm({ role, companyId, companyName, onCreated, onCancel }: CreateUserFormProps) {
+export default function CreateUserForm({ role, onCreated, onCancel }: CreateUserFormProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,7 +44,7 @@ export default function CreateUserForm({ role, companyId, companyName, onCreated
     const res = await fetch("/api/admin/users", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, password, fullName, phone, role, companyId }),
+      body: JSON.stringify({ email, password, fullName, phone, role }),
     });
     const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; detail?: string } | null;
     setBusy(false);
@@ -59,14 +58,14 @@ export default function CreateUserForm({ role, companyId, companyName, onCreated
   return (
     <form onSubmit={submit} className="card flex flex-col gap-4 p-4">
       <div>
-        <h3 className="text-base font-semibold">{role === "driver" ? "Add a driver" : "Add a company admin"}</h3>
-        <p className="text-xs text-neutral-500">{role === "driver" ? "They sign in with this email and password. They choose the company and vehicle when they plan a route." : `For ${companyName}. They sign in with this email and password.`}</p>
+        <h3 className="text-base font-semibold">Add a driver</h3>
+        <p className="text-xs text-neutral-500">They sign in with this email and password. They choose the company and vehicle when they plan a route.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <Label label="Full name"><input className="field" required value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={100} /></Label>
         <Label label="Email"><input className="field" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" /></Label>
         <Label label="Phone" hint="Used for WhatsApp. 10 digits, or +country code.">
-          <input className="field" type="tel" required={role === "driver"} value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} />
+          <input className="field" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} />
         </Label>
         <Label label="Temporary password" hint="At least 8 characters. Share it with them privately.">
           <div className="flex gap-2">

@@ -5,7 +5,7 @@ import BoardingPointsManager from "./manager";
 export const metadata = { title: "Boarding points" };
 
 export default async function BoardingPointsPage() {
-  const { supabase, isSuper, companies, companyId } = await getAdminContext();
+  const { supabase, isSuper, companies, companyId } = await getAdminContext("boarding_points");
   const { data } = await supabase.from("boarding_points").select("id, company_id, name, address").order("name");
   return (
     <div>

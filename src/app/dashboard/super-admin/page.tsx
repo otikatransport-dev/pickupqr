@@ -2,11 +2,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui";
 import { ADMIN_NAV } from "@/lib/admin-nav";
+import { can } from "@/lib/roles";
 
 export const metadata = { title: "Admin Centre" };
 
 export default async function SuperAdminPage() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: me } = await supabase.from("profiles").select("role").eq("id", user!.id).single();
   const c = (t: "companies" | "drivers" | "employees" | "boarding_points") =>
     supabase.from(t).select("*", { count: "exact", head: true });
   const [{ count: companies }, { count: drivers }, { count: employees }, { count: points }] = await Promise.all([
@@ -23,7 +26,7 @@ export default async function SuperAdminPage() {
         <Stat label="Boarding points" value={points ?? 0} />
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {ADMIN_NAV.filter((i) => i.roles.includes("super_admin")).map((i) => (
+        {ADMIN_NAV.filter((i) => can(me?.role, i.cap)).map((i) => (
           <Tile key={i.href} href={i.href} title={i.title} text={i.text} />
         ))}
       </div>

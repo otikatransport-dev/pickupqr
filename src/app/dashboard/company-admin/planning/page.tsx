@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { can } from "@/lib/roles";
 import { addDays, todayISO } from "@/lib/planning/dates";
 import { getWhatsAppConfig } from "@/lib/whatsapp";
 import PlanningAdmin, { type DriverRow, type PlanningRow } from "./planning-admin";
@@ -16,7 +17,7 @@ export default async function PlanningPage() {
   if (!user) redirect("/login");
 
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (me?.role !== "super_admin" && me?.role !== "company_admin") redirect("/unauthorized");
+  if (!can(me?.role, "planning")) redirect("/unauthorized");
 
   const today = todayISO();
 

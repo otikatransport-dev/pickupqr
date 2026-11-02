@@ -6,7 +6,7 @@ import CreateUserForm from "@/components/create-user-form";
 import Avatar from "@/components/avatar";
 import { Empty, Label, Notice } from "@/components/ui";
 
-export interface DriverRow { id: string; profileId: string; name: string; email: string; avatar: string | null; phone: string | null; optIn: boolean }
+export interface DriverRow { id: string; profileId: string; name: string; email: string; avatar: string | null; phone: string | null; optIn: boolean; active: boolean }
 
 const ERR: Record<string, string> = {
   email_taken: "That email already has an account.",
@@ -44,12 +44,12 @@ export default function DriversManager({ initial }: { initial: DriverRow[] }) {
     setEdit(null); setMsg({ ok: true, text: "Driver updated." }); router.refresh();
   }
 
-  async function remove(profileId: string) {
+  async function setActive(profileId: string, active: boolean) {
     setBusy(true);
-    const res = await fetch("/api/admin/users", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ userId: profileId }) });
+    const res = await fetch("/api/admin/users", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ userId: profileId, active }) });
     setBusy(false);
     setConfirm(null);
-    setMsg(res.ok ? { ok: true, text: "Driver removed." } : { ok: false, text: "Could not remove that driver." });
+    setMsg(res.ok ? { ok: true, text: active ? "Driver reactivated." : "Driver deactivated. They can no longer sign in, and their history is kept." } : { ok: false, text: "Could not change that driver." });
     if (res.ok) router.refresh();
   }
 
@@ -85,14 +85,16 @@ export default function DriversManager({ initial }: { initial: DriverRow[] }) {
             <li key={d.id} className="card flex items-center gap-3 p-3">
               <Avatar url={d.avatar} name={d.name} size={40} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{d.name}</p>
+                <p className={`truncate font-medium ${d.active ? "" : "text-neutral-400"}`}>{d.name}{!d.active && <span className="ml-2 rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-600">Deactivated</span>}</p>
                 <p className="truncate text-xs text-neutral-500">{[d.phone, d.email, d.optIn ? "WhatsApp on" : null].filter(Boolean).join(" · ")}</p>
               </div>
               <div className="flex shrink-0 gap-2">
                 <button className="btn-secondary !min-h-9 !px-3" onClick={() => startEdit(d)}>Edit</button>
-                {confirm === d.id
-                  ? <button className="btn !min-h-9 !px-3 bg-red-600 text-white" disabled={busy} onClick={() => remove(d.profileId)}>Confirm remove</button>
-                  : <button className="btn-secondary !min-h-9 !px-3 !text-red-700" onClick={() => setConfirm(d.id)}>Remove</button>}
+                {!d.active
+                  ? <button className="btn-secondary !min-h-9 !px-3" disabled={busy} onClick={() => setActive(d.profileId, true)}>Reactivate</button>
+                  : confirm === d.id
+                    ? <button className="btn !min-h-9 !px-3 bg-red-600 text-white" disabled={busy} onClick={() => setActive(d.profileId, false)}>Confirm deactivate</button>
+                    : <button className="btn-secondary !min-h-9 !px-3 !text-red-700" onClick={() => setConfirm(d.id)}>Deactivate</button>}
               </div>
             </li>
           ))}

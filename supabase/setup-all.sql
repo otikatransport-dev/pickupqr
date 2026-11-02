@@ -793,3 +793,5 @@ language sql stable security invoker as $$
   from public.companies c;
 $$;
 grant execute on function public.company_linked_records() to authenticated;
+
+-- NOTE: after this file, run 0009_roles_enum.sql ALONE, then 0010_roles_and_users.sql (they cannot share one run).

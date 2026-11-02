@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getBranding } from "@/lib/branding";
+import { can } from "@/lib/roles";
 import { PageHeader } from "@/components/ui";
 import BrandingForm from "./branding-form";
 
@@ -13,7 +14,7 @@ export default async function BrandingPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (me?.role !== "super_admin") redirect("/unauthorized");
+  if (!can(me?.role, "branding")) redirect("/unauthorized");
 
   const branding = await getBranding();
   return (

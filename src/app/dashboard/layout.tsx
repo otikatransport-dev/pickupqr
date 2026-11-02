@@ -5,6 +5,7 @@ import { getBranding } from "@/lib/branding";
 import Link from "next/link";
 import Avatar from "@/components/avatar";
 import BackBar from "./back-bar";
+import { homeFor, ROLE_LABEL } from "@/lib/roles";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -31,8 +32,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const branding = await getBranding();
-  const homeHref = `/dashboard/${(profile?.role ?? "employee").replace("_", "-")}`;
-  const roleLabel = profile?.role?.replace("_", " ") ?? "unknown role";
+  const homeHref = homeFor(profile?.role);
+  const roleLabel = ROLE_LABEL[profile?.role ?? ""] ?? "Unknown role";
 
   return (
     <div className="min-h-screen">
@@ -52,7 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             {profile?.avatar_url && <Avatar url={profile.avatar_url} name={profile.full_name ?? ""} size={32} />}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight">{profile?.full_name ?? user.email}</p>
-              <p className="truncate text-xs capitalize opacity-75">
+              <p className="truncate text-xs opacity-75">
                 {roleLabel}
                 {companyName ? ` · ${companyName}` : ""}
               </p>

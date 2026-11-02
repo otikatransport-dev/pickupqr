@@ -5,7 +5,7 @@ import RouteOptimizer, { type CompanyRoute } from "./route-optimizer";
 export const metadata = { title: "Route Optimizer" };
 
 export default async function RouteOptimizerPage() {
-  const { supabase, isSuper } = await getAdminContext();
+  const { supabase, isSuper, canEdit } = await getAdminContext("route_optimizer_view", "route_optimizer_edit");
   const { data } = await supabase
     .from("companies")
     .select("id, name, address, metro_aller, metro_retour, contact, notes, color")
@@ -18,7 +18,7 @@ export default async function RouteOptimizerPage() {
         title="Route Optimizer"
         subtitle="Panneau Trajets — ramassage et dépôt au métro pour chaque entreprise."
       />
-      <RouteOptimizer initial={(data ?? []) as CompanyRoute[]} isSuper={isSuper} />
+      <RouteOptimizer initial={(data ?? []) as CompanyRoute[]} isSuper={isSuper} readOnly={!canEdit} />
     </div>
   );
 }

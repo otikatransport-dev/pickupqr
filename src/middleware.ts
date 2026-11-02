@@ -1,14 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import type { AppRole } from "@/lib/database.types";
-
-// Which role is allowed under each /dashboard/<segment> path.
-const ROLE_FOR_SEGMENT: Record<string, AppRole> = {
-  "super-admin": "super_admin",
-  "company-admin": "company_admin",
-  driver: "driver",
-  employee: "employee",
-};
+import { canOpenPath } from "@/lib/access";
+import { homeFor } from "@/lib/roles";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -49,17 +42,24 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Look up the caller's role to enforce per-segment access.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    // Look up the caller's role (and whether the account is still active).
+    const first = await supabase.from("profiles").select("role, active").eq("id", user.id).single();
+    let profile = first.data;
+    const profileErr = first.error;
+    if (profileErr) {
+      // Before database update 0010 there is no "active" column yet: fall back to the role alone.
+      profile = (await supabase.from("profiles").select("role").eq("id", user.id).single()).data as typeof profile;
+    }
+    const role = profile?.role ?? null;
 
-    const segment = path.split("/")[2]; // "/dashboard/<segment>/..."
-    const requiredRole = ROLE_FOR_SEGMENT[segment];
+    if (profile && profile.active === false) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/unauthorized";
+      url.search = "?reason=deactivated";
+      return NextResponse.redirect(url);
+    }
 
-    if (requiredRole && profile?.role !== requiredRole && profile?.role !== "super_admin") {
+    if (!canOpenPath(role, path)) {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";
       return NextResponse.redirect(url);
@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
     // Bare /dashboard → send them to their own role's home.
     if (path === "/dashboard" || path === "/dashboard/") {
       const url = request.nextUrl.clone();
-      url.pathname = `/dashboard/${(profile?.role ?? "employee").replace("_", "-")}`;
+      url.pathname = homeFor(role);
       return NextResponse.redirect(url);
     }
   }

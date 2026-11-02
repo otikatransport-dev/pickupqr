@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { can } from "@/lib/roles";
 import { Dot, Empty, PageHeader } from "@/components/ui";
 import { todayMontreal } from "@/lib/driver-route";
 
@@ -14,7 +15,7 @@ export default async function PostedRoutesPage({ searchParams }: { searchParams:
   if (!user) redirect("/login");
   const { data: me } = await supabase.from("profiles").select("role").eq("id", user.id).single();
   // Drivers see everyone's posted routes; super admins oversee all; company admins only see their own company's stops.
-  if (me?.role !== "driver" && me?.role !== "super_admin" && me?.role !== "company_admin") redirect("/unauthorized");
+  if (!can(me?.role, "posted_routes")) redirect("/unauthorized");
 
   const date = raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : todayMontreal();
   const { data, error } = await supabase.rpc("posted_routes", { p_date: date });

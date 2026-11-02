@@ -8,7 +8,7 @@
  * and re-run `npm run build` to catch any drift.
  */
 
-export type AppRole = "super_admin" | "company_admin" | "driver" | "employee";
+export type AppRole = "super_admin" | "manager" | "admin_hr" | "recruiter" | "driver" | "employee" | "company_admin";
 export type WhatsAppStatus = "queued" | "sent" | "delivered" | "read" | "failed";
 
 export interface Database {
@@ -22,6 +22,7 @@ export interface Database {
           role: AppRole;
           company_id: string | null;
           avatar_url: string | null;
+          active: boolean;
           created_at: string;
         };
         Insert: {
@@ -31,6 +32,7 @@ export interface Database {
           role?: AppRole;
           company_id?: string | null;
           avatar_url?: string | null;
+          active?: boolean;
         };
         Update: {
           full_name?: string | null;
@@ -38,7 +40,20 @@ export interface Database {
           role?: AppRole;
           company_id?: string | null;
           avatar_url?: string | null;
+          active?: boolean;
         };
+        Relationships: [];
+      };
+      role_audit_log: {
+        Row: {
+          id: string; target_id: string; target_name: string | null; changed_by: string | null; changed_by_name: string | null;
+          action: "create" | "role_change" | "deactivate" | "reactivate"; old_role: string | null; new_role: string | null; created_at: string;
+        };
+        Insert: {
+          target_id: string; target_name?: string | null; changed_by?: string | null; changed_by_name?: string | null;
+          action: "create" | "role_change" | "deactivate" | "reactivate"; old_role?: string | null; new_role?: string | null;
+        };
+        Update: Record<string, never>;
         Relationships: [];
       };
       companies: {

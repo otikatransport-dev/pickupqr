@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isHexColor } from "@/lib/branding";
 import ColorInput from "@/components/color-input";
-import CreateUserForm from "@/components/create-user-form";
 import { Dot, Empty, Label, Notice } from "@/components/ui";
 
 export interface CompanyRow {
@@ -14,12 +13,11 @@ export interface CompanyRow {
   status: "active" | "archived";
   drivers: number; boardingPoints: number; employees: number; routes: number; plannings: number; stops: number;
 }
-export interface AdminRow { id: string; name: string; phone: string | null; companyId: string | null }
 
 const NEW = "__new__";
 const SWATCHES = ["#1a73e8", "#e8710a", "#188038", "#d93025", "#9334e6", "#00796b", "#f9ab00", "#5f6368"];
 
-export default function CompaniesManager({ initial, admins, startNew = false }: { initial: CompanyRow[]; admins: AdminRow[]; startNew?: boolean }) {
+export default function CompaniesManager({ initial, startNew = false, canEdit = true }: { initial: CompanyRow[]; startNew?: boolean; canEdit?: boolean }) {
   const supabase = createClient();
   const router = useRouter();
   const [editing, setEditing] = useState<string | null>(startNew ? NEW : null); // company id, NEW, or null
@@ -33,8 +31,6 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [addAdminFor, setAddAdminFor] = useState<string | null>(null);
-  const [confirmRemoveAdmin, setConfirmRemoveAdmin] = useState<string | null>(null);
 
   function startEdit(c: CompanyRow | null) {
     setMsg(null); setDuplicateOf(null);
@@ -96,17 +92,6 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
     if (!error) router.refresh();
   }
 
-  async function removeAdmin(id: string) {
-    setBusy(true);
-    const res = await fetch("/api/admin/users", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ userId: id }) });
-    setBusy(false);
-    setConfirmRemoveAdmin(null);
-    setMsg(res.ok ? { ok: true, text: "Admin login removed." } : { ok: false, text: "Could not remove that admin." });
-    if (res.ok) router.refresh();
-  }
-
-  const addAdminCompany = initial.find((c) => c.id === addAdminFor);
-
   return (
     <div className="flex flex-col gap-4">
       {msg && <Notice kind={msg.ok ? "ok" : "error"}>{msg.text}</Notice>}
@@ -120,7 +105,7 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
 
       {editing === null && (
         <div className="flex flex-wrap items-center gap-3">
-          <button className="btn-primary" onClick={() => startEdit(null)}>+ Add company</button>
+          {canEdit && <button className="btn-primary" onClick={() => startEdit(null)}>+ Add company</button>}
           {initial.some((c) => c.status === "archived") && (
             <label className="flex items-center gap-2 text-sm text-neutral-600">
               <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> Show archived
@@ -166,23 +151,12 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
         </form>
       )}
 
-      {addAdminCompany && (
-        <CreateUserForm
-          role="company_admin"
-          companyId={addAdminCompany.id}
-          companyName={addAdminCompany.name}
-          onCancel={() => setAddAdminFor(null)}
-          onCreated={() => { setAddAdminFor(null); setMsg({ ok: true, text: "Company admin created. Give them their email and temporary password." }); router.refresh(); }}
-        />
-      )}
-
       {initial.length === 0 ? (
         <Empty>No companies yet. Add your first one to get started.</Empty>
       ) : (
         <ul className="flex flex-col gap-3">
           {initial.filter((c) => showArchived || c.status !== "archived").map((c) => {
-            const cAdmins = admins.filter((a) => a.companyId === c.id);
-            return (
+                        return (
               <li key={c.id} className="card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -193,7 +167,7 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
                       Used in {c.employees} employees · {c.drivers} drivers · {c.boardingPoints} boarding points · {c.routes} routes · {c.plannings} plannings · {c.stops} driver route stops
                     </p>
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className={`flex shrink-0 gap-2 ${canEdit ? "" : "hidden"}`}>
                     <button className="btn-secondary !min-h-9 !px-3" onClick={() => startEdit(c)}>Edit</button>
                     {c.status === "archived"
                       ? <button className="btn-secondary !min-h-9 !px-3" disabled={busy} onClick={() => setStatus(c, "active")}>Restore</button>
@@ -204,28 +178,6 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
                       <button className="btn-secondary !min-h-9 !px-3 !text-red-700" onClick={() => setConfirmDelete(c.id)}>Delete</button>
                     ))}
                   </div>
-                </div>
-                <div className="mt-3 border-t border-neutral-200 pt-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-neutral-700">Company admins</p>
-                    <button className="text-sm font-medium text-brand hover:underline" onClick={() => { setMsg(null); setAddAdminFor(c.id); }}>+ Add admin</button>
-                  </div>
-                  {cAdmins.length === 0 ? (
-                    <p className="mt-1 text-sm text-neutral-500">No admin yet, so nobody can manage this company except you.</p>
-                  ) : (
-                    <ul className="mt-1 flex flex-col gap-1">
-                      {cAdmins.map((a) => (
-                        <li key={a.id} className="flex items-center justify-between gap-2 text-sm">
-                          <span>{a.name}{a.phone ? <span className="text-neutral-500"> · {a.phone}</span> : null}</span>
-                          {confirmRemoveAdmin === a.id ? (
-                            <button className="text-red-700 underline" disabled={busy} onClick={() => removeAdmin(a.id)}>Confirm remove</button>
-                          ) : (
-                            <button className="text-neutral-500 underline" onClick={() => setConfirmRemoveAdmin(a.id)}>Remove</button>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
                 </div>
               </li>
             );
