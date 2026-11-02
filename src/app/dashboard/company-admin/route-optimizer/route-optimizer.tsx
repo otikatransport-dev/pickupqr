@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { isHexColor } from "@/lib/branding";
 import {
@@ -66,7 +67,6 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
   const mapDiv = useRef<HTMLDivElement>(null);
   const gmap = useRef<any>(null);
   const overlays = useRef<any[]>([]);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const sel = companies.find((c) => c.id === selId) ?? null;
   const useGoogle = !!apiKey && !mapsFailed;
@@ -197,24 +197,8 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
       setBusy(false);
       if (error || !data?.length) { setMsg({ ok: false, text: error?.message ?? "Modification refusée. Avez-vous exécuté la migration 0004 ?" }); return; }
       setCompanies((cs) => cs.map((c) => (c.id === editingId ? (data[0] as CompanyRoute) : c)));
-    } else {
-      const { data, error } = await supabase.from("companies").insert(row).select(COLS);
-      setBusy(false);
-      if (error || !data?.length) { setMsg({ ok: false, text: error?.message ?? "Ajout refusé." }); return; }
-      setCompanies((cs) => [...cs, data[0] as CompanyRoute]); setSelId((data[0] as CompanyRoute).id);
-    }
+    } else { setBusy(false); return; }
     setForm(null); setMsg({ ok: true, text: "Entreprise enregistrée." });
-  }
-
-  async function remove() {
-    const c = companies.find((x) => x.id === editingId);
-    if (!c || !confirm("Supprimer « " + c.name + " » ? Ses points d'embarquement et trajets seront aussi supprimés.")) return;
-    setBusy(true);
-    const { error } = await supabase.from("companies").delete().eq("id", c.id);
-    setBusy(false);
-    if (error) { setMsg({ ok: false, text: error.message }); return; }
-    const rest = companies.filter((x) => x.id !== c.id);
-    setCompanies(rest); setSelId(rest[0]?.id ?? null); setForm(null); setMsg({ ok: true, text: "Entreprise supprimée." });
   }
 
   async function setColor(id: string, hex: string) {
@@ -231,26 +215,6 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
     a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }));
     a.download = "entreprises-trajets-" + new Date().toISOString().slice(0, 10) + ".json"; a.click();
   }
-  async function importJson(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; e.target.value = "";
-    if (!file) return;
-    try {
-      const arr = JSON.parse(await file.text());
-      if (!Array.isArray(arr)) throw new Error("format");
-      const have = new Set(companies.map((c) => c.name.trim().toLowerCase()));
-      const fresh = arr.filter((c: any) => c?.nom && !have.has(String(c.nom).trim().toLowerCase())).map((c: any) => toRow({
-        name: String(c.nom), address: String(c.adresse ?? ""), metro_aller: String(c.metroAller ?? ""), metro_retour: String(c.metroRetour ?? ""),
-        contact: String(c.contact ?? ""), notes: String(c.notes ?? ""), color: String(c.color ?? ""),
-      }));
-      if (!fresh.length) { setMsg({ ok: true, text: "Rien à importer : toutes ces entreprises existent déjà." }); return; }
-      if (!confirm("Importer " + fresh.length + " nouvelle(s) entreprise(s) ? Les noms déjà présents sont ignorés.")) return;
-      const { data, error } = await supabase.from("companies").insert(fresh).select(COLS);
-      if (error) { setMsg({ ok: false, text: error.message }); return; }
-      setCompanies((cs) => [...cs, ...((data ?? []) as CompanyRoute[])]);
-      setMsg({ ok: true, text: (data?.length ?? 0) + " entreprise(s) importée(s)." });
-    } catch { setMsg({ ok: false, text: "Fichier invalide." }); }
-  }
-
   async function computeAll() {
     if (!online) { setMsg({ ok: false, text: "Pas de connexion Internet." }); return; }
     let i = 0;
@@ -311,7 +275,7 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
         <aside className="card flex max-h-[80vh] flex-col overflow-hidden">
           <div className="flex gap-2 border-b border-neutral-200 p-3">
             <input className="field" placeholder="Rechercher une entreprise…" value={q} onChange={(e) => setQ(e.target.value)} />
-            {isSuper && <button className="btn-primary !min-h-10 !px-3" title="Ajouter" onClick={() => openForm(null)}>+</button>}
+            {isSuper && <Link className="btn-primary !min-h-10 !px-3" title="Ajouter une entreprise dans la liste principale" href="/dashboard/super-admin/companies?new=1">+</Link>}
           </div>
           <p className="px-3 pt-2 text-xs text-neutral-500">{rows.length} entreprise{rows.length > 1 ? "s" : ""}</p>
           {usedColors.length > 0 && (
@@ -344,8 +308,6 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
           </div>
           <div className="flex flex-wrap gap-2 border-t border-neutral-200 p-3">
             <button className="btn-secondary !min-h-8 !px-3 !text-xs" onClick={exportJson}>⬇ Exporter</button>
-            {isSuper && <button className="btn-secondary !min-h-8 !px-3 !text-xs" onClick={() => fileRef.current?.click()}>⬆ Importer</button>}
-            <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={importJson} />
             <button className="btn-secondary !min-h-8 !px-3 !text-xs" disabled={!!calcAll} onClick={computeAll}>{calcAll ? "⏱ " + calcAll : "⏱ Calculer tous"}</button>
           </div>
         </aside>
@@ -381,7 +343,7 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
               </div>
             </>
           ) : (
-            <div className="card p-8 text-center text-sm text-neutral-500">Aucune entreprise sélectionnée. {isSuper ? "Cliquez sur + pour en ajouter une." : ""}</div>
+            <div className="card p-8 text-center text-sm text-neutral-500">Aucune entreprise sélectionnée. La liste vient de « Companies » (liste principale).</div>
           )}
         </section>
       </div>
@@ -390,8 +352,8 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
       {form && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4" onClick={() => setForm(null)}>
           <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="card flex max-h-[92vh] w-full max-w-lg flex-col gap-3 overflow-auto p-5">
-            <h3 className="text-lg font-semibold">{editingId ? "Modifier l'entreprise" : "Nouvelle entreprise"}</h3>
-            <Field label="Nom de l'entreprise"><input className="field" required disabled={!isSuper} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+            <h3 className="text-lg font-semibold">Modifier l&apos;entreprise</h3>
+            <Field label="Nom de l'entreprise (modifiable dans Companies)"><input className="field" required disabled value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
             <Field label="Adresse de la compagnie"><input className="field" required value={form.address} placeholder="ex. 1234 rue Exemple, Montréal, QC H1A 1A1" onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
             <Field label="Station de métro ALLER — où on ramasse"><input className="field" list="stations" value={form.metro_aller} placeholder="ex. Lionel-Groulx" onChange={(e) => setForm({ ...form, metro_aller: e.target.value })} /></Field>
             <Field label="Station de métro RETOUR — où on dépose"><input className="field" list="stations" value={form.metro_retour} placeholder="ex. Côte-Vertu" onChange={(e) => setForm({ ...form, metro_retour: e.target.value })} /></Field>
@@ -400,7 +362,7 @@ export default function RouteOptimizer({ initial, isSuper }: { initial: CompanyR
             <Field label="Notes (horaires, porte d'entrée, etc.)"><textarea className="field min-h-[60px]" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
             <p className="text-xs text-neutral-500">Pour une station, choisissez dans la liste ou tapez une adresse complète.</p>
             <div className="flex justify-between gap-2">
-              {isSuper && editingId ? <button type="button" className="btn-secondary !text-red-700" onClick={remove} disabled={busy}>Supprimer</button> : <span />}
+              <span />
               <div className="flex gap-2"><button type="button" className="btn-secondary" onClick={() => setForm(null)}>Annuler</button><button className="btn-primary" disabled={busy}>{busy ? "…" : "Enregistrer"}</button></div>
             </div>
           </form>

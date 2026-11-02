@@ -21,7 +21,6 @@ export default async function BrandingPage() {
       <PageHeader
         title="Branding"
         subtitle="Name, colours and logo used on every screen, including the login page."
-        backHref="/dashboard/super-admin"
       />
       <BrandingForm initial={branding} userId={user.id} />
     </div>

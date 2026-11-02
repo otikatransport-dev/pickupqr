@@ -4,6 +4,7 @@ import SignOutButton from "./sign-out-button";
 import { getBranding } from "@/lib/branding";
 import Link from "next/link";
 import Avatar from "@/components/avatar";
+import BackBar from "./back-bar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -60,7 +61,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <SignOutButton />
         </div>
       </header>
-      <main className="mx-auto max-w-3xl p-4 pb-16">{children}</main>
+      <main className="mx-auto max-w-3xl p-4 pb-16">
+        <BackBar role={profile?.role ?? null} />
+        {children}
+      </main>
     </div>
   );
 }

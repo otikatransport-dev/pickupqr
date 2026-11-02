@@ -52,10 +52,21 @@ export interface Database {
           metro_retour: string | null;
           contact: string | null;
           notes: string | null;
+          code: string | null;
+          phone: string | null;
+          lat: number | null;
+          lng: number | null;
+          status: "active" | "archived";
+          updated_at: string;
           created_at: string;
         };
         Insert: {
           name: string;
+          code?: string | null;
+          phone?: string | null;
+          lat?: number | null;
+          lng?: number | null;
+          status?: "active" | "archived";
           color?: string | null;
           logo_url?: string | null;
           address?: string | null;
@@ -66,6 +77,11 @@ export interface Database {
         };
         Update: {
           name?: string;
+          code?: string | null;
+          phone?: string | null;
+          lat?: number | null;
+          lng?: number | null;
+          status?: "active" | "archived";
           color?: string | null;
           logo_url?: string | null;
           address?: string | null;
@@ -315,6 +331,10 @@ export interface Database {
     Functions: {
       set_my_whatsapp_opt_in: { Args: { opt_in: boolean }; Returns: undefined };
       mark_planning_viewed: { Args: { planning_id: string }; Returns: undefined };
+      company_linked_records: {
+        Args: Record<string, never>;
+        Returns: { company_id: string; employees: number; drivers: number; boarding_points: number; routes: number; plannings: number }[];
+      };
     };
     Enums: {
       app_role: AppRole;

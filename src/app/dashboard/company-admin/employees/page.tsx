@@ -10,7 +10,7 @@ export default async function EmployeesPage() {
   const { data } = await supabase.from("employees").select("id, name, phone_normalized, company_id, active, qr_token, qr_generated_at").order("name");
   return (
     <div>
-      <PageHeader title="Employees" subtitle="People who ride. Each one gets a personal QR code that drivers scan." backHref={isSuper ? "/dashboard/super-admin" : "/dashboard/company-admin"} />
+      <PageHeader title="Employees" subtitle="People who ride. Each one gets a personal QR code that drivers scan." />
       <Link href="/dashboard/company-admin/employees/bulk" className="btn-secondary mb-4 inline-flex">⬆ Add employees in bulk</Link>
       <EmployeesManager initial={data ?? []} companies={companies} isSuper={isSuper} defaultCompanyId={companyId ?? companies[0]?.id ?? ""} />
     </div>

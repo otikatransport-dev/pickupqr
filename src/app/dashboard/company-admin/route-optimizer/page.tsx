@@ -9,6 +9,7 @@ export default async function RouteOptimizerPage() {
   const { data } = await supabase
     .from("companies")
     .select("id, name, address, metro_aller, metro_retour, contact, notes, color")
+    .eq("status", "active")
     .order("name");
   return (
     // The page needs more room than the other admin screens, so it breaks out of the narrow column.
@@ -16,7 +17,6 @@ export default async function RouteOptimizerPage() {
       <PageHeader
         title="Route Optimizer"
         subtitle="Panneau Trajets — ramassage et dépôt au métro pour chaque entreprise."
-        backHref={isSuper ? "/dashboard/super-admin" : "/dashboard/company-admin"}
       />
       <RouteOptimizer initial={(data ?? []) as CompanyRoute[]} isSuper={isSuper} />
     </div>

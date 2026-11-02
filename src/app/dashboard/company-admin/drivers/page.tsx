@@ -23,7 +23,7 @@ export default async function DriversPage() {
   const rows: DriverRow[] = (data ?? []).map((d) => ({ id: d.id, profileId: d.profile_id, name: names.get(d.profile_id) || "Unnamed", email: emails.get(d.profile_id) ?? "", avatar: photos.get(d.profile_id) ?? null, phone: d.phone, optIn: d.whatsapp_opt_in }));
   return (
     <div>
-      <PageHeader title="Drivers" subtitle="Create driver logins. Drivers choose their company and vehicle when they plan a route." backHref="/dashboard/super-admin" />
+      <PageHeader title="Drivers" subtitle="Create driver logins. Drivers choose their company and vehicle when they plan a route." />
       <DriversManager initial={rows} />
     </div>
   );

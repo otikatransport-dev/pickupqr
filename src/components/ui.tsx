@@ -1,24 +1,8 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-export function PageHeader({
-  title,
-  subtitle,
-  backHref,
-  backLabel = "Admin Centre",
-}: {
-  title: string;
-  subtitle?: string;
-  backHref?: string;
-  backLabel?: string;
-}) {
+export function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-5">
-      {backHref && (
-        <Link href={backHref} className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
-          <span aria-hidden>←</span> {backLabel}
-        </Link>
-      )}
       <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
       {subtitle && <p className="mt-1 text-sm text-neutral-500">{subtitle}</p>}
     </div>

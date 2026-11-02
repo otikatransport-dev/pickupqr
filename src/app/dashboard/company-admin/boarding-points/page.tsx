@@ -9,7 +9,7 @@ export default async function BoardingPointsPage() {
   const { data } = await supabase.from("boarding_points").select("id, company_id, name, address").order("name");
   return (
     <div>
-      <PageHeader title="Boarding points" subtitle="The places where employees get on. Drivers pick from this list." backHref={isSuper ? "/dashboard/super-admin" : "/dashboard/company-admin"} />
+      <PageHeader title="Boarding points" subtitle="The places where employees get on. Drivers pick from this list." />
       <BoardingPointsManager initial={data ?? []} companies={companies} isSuper={isSuper} defaultCompanyId={companyId ?? companies[0]?.id ?? ""} />
     </div>
   );

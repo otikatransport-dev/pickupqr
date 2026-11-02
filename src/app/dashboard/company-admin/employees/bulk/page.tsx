@@ -8,7 +8,7 @@ export default async function BulkEmployeesPage() {
   const { isSuper, companies, companyId } = await getAdminContext();
   return (
     <div>
-      <PageHeader title="Add employees in bulk" subtitle="Bring in names, phone numbers and companies from a Google Sheet or a CSV file." backHref="/dashboard/company-admin/employees" backLabel="Employees" />
+      <PageHeader title="Add employees in bulk" subtitle="Bring in names, phone numbers and companies from a Google Sheet or a CSV file." />
       <BulkEmployees companies={companies} isSuper={isSuper} ownCompanyId={companyId} />
     </div>
   );
