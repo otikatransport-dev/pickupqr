@@ -30,16 +30,21 @@ export default async function DriverPage() {
       </section>
       <h1 className="mt-6 text-2xl font-bold tracking-tight">My routes</h1>
       <p className="mt-1 text-sm text-neutral-500">You choose the company and enter your vehicle number when you plan a route.</p>
+      <Link href="/dashboard/driver/route" className="mt-4 card-link">
+        <p className="font-medium">Plan my route</p>
+        <p className="text-sm text-neutral-500">Pick companies, set the order and enter your vehicle number.</p>
+      </Link>
+      <Link href="/dashboard/posted-routes" className="mt-3 card-link">
+        <p className="font-medium">Posted routes</p>
+        <p className="text-sm text-neutral-500">See the routes other drivers have posted today.</p>
+      </Link>
       <Link
         href="/dashboard/driver/planning"
-        className="mt-4 card-link"
+        className="mt-3 card-link"
       >
         <p className="font-medium">My planning</p>
         <p className="text-sm text-neutral-500">Your shifts, as sent by your admin.</p>
       </Link>
-      <p className="mt-4 text-sm text-neutral-500">
-        The route planner, company selector, and QR scanner from earlier phases plug in here next.
-      </p>
       <ul className="mt-4 flex flex-col gap-2">
         {(routes ?? []).map((r) => (
           <li key={r.id} className="rounded-lg border border-neutral-200 bg-white p-3 text-sm">

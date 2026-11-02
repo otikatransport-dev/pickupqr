@@ -32,6 +32,7 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
       employees: Number(u?.employees ?? 0),
       routes: Number(u?.routes ?? 0),
       plannings: Number(u?.plannings ?? 0),
+      stops: Number(u?.route_stops ?? 0),
     };
   });
   const adminRows: AdminRow[] = (admins ?? []).map((a) => ({

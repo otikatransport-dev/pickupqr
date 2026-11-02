@@ -18,5 +18,6 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/dashboard/company-admin/employees", title: "Employees", text: "Add the people who ride and manage their QR codes.", roles: ["super_admin", "company_admin"] },
   { href: "/dashboard/company-admin/boarding-points", title: "Boarding points", text: "Pick-up locations for each company.", roles: ["super_admin", "company_admin"] },
   { href: "/dashboard/company-admin/planning", title: "Planning", text: "Send drivers their shifts and see who received them.", roles: ["super_admin", "company_admin"] },
+  { href: "/dashboard/posted-routes", title: "Posted routes", text: "Routes drivers have posted for the day.", roles: ["super_admin", "company_admin"] },
   { href: "/dashboard/company-admin/route-optimizer", title: "Route Optimizer", text: "Metro pick-up and drop-off times for each company.", roles: ["super_admin", "company_admin"] },
 ];

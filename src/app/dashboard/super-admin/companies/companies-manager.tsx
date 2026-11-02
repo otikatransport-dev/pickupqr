@@ -12,7 +12,7 @@ export interface CompanyRow {
   id: string; name: string; color: string | null; logo_url: string | null; address: string | null;
   code: string | null; phone: string | null; contact: string | null; lat: number | null; lng: number | null;
   status: "active" | "archived";
-  drivers: number; boardingPoints: number; employees: number; routes: number; plannings: number;
+  drivers: number; boardingPoints: number; employees: number; routes: number; plannings: number; stops: number;
 }
 export interface AdminRow { id: string; name: string; phone: string | null; companyId: string | null }
 
@@ -190,7 +190,7 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
                     {c.address && <p className="mt-0.5 text-sm text-neutral-500">{c.address}</p>}
                     {(c.contact || c.phone) && <p className="mt-0.5 text-sm text-neutral-500">{[c.contact, c.phone].filter(Boolean).join(" · ")}</p>}
                     <p className="mt-1 text-xs text-neutral-500" title="Where this company is used">
-                      Used in {c.employees} employees · {c.drivers} drivers · {c.boardingPoints} boarding points · {c.routes} routes · {c.plannings} plannings
+                      Used in {c.employees} employees · {c.drivers} drivers · {c.boardingPoints} boarding points · {c.routes} routes · {c.plannings} plannings · {c.stops} driver route stops
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
@@ -198,7 +198,7 @@ export default function CompaniesManager({ initial, admins, startNew = false }: 
                     {c.status === "archived"
                       ? <button className="btn-secondary !min-h-9 !px-3" disabled={busy} onClick={() => setStatus(c, "active")}>Restore</button>
                       : <button className="btn-secondary !min-h-9 !px-3" disabled={busy} onClick={() => setStatus(c, "archived")}>Archive</button>}
-                    {c.employees + c.drivers + c.boardingPoints + c.routes + c.plannings === 0 && (confirmDelete === c.id ? (
+                    {c.employees + c.drivers + c.boardingPoints + c.routes + c.plannings + c.stops === 0 && (confirmDelete === c.id ? (
                       <button className="btn !min-h-9 !px-3 bg-red-600 text-white" disabled={busy} onClick={() => remove(c.id)}>Confirm delete</button>
                     ) : (
                       <button className="btn-secondary !min-h-9 !px-3 !text-red-700" onClick={() => setConfirmDelete(c.id)}>Delete</button>

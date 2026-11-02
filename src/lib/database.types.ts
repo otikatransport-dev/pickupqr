@@ -326,6 +326,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      driver_routes: {
+        Row: { id: string; driver_id: string; route_date: string; status: "draft" | "submitted" | "completed"; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      driver_route_stops: {
+        Row: {
+          id: string; route_id: string; company_id: string; sequence: number; vehicle_number: string | null;
+          status: "pending" | "in_progress" | "completed"; completed_at: string | null;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -333,7 +348,16 @@ export interface Database {
       mark_planning_viewed: { Args: { planning_id: string }; Returns: undefined };
       company_linked_records: {
         Args: Record<string, never>;
-        Returns: { company_id: string; employees: number; drivers: number; boarding_points: number; routes: number; plannings: number }[];
+        Returns: { company_id: string; employees: number; drivers: number; boarding_points: number; routes: number; plannings: number; route_stops: number }[];
+      };
+      save_driver_route: { Args: { p_stops: unknown; p_post?: boolean }; Returns: string };
+      posted_routes: {
+        Args: { p_date?: string };
+        Returns: {
+          route_id: string; driver_id: string; driver_name: string; route_date: string; route_status: string;
+          stop_sequence: number; company_id: string; company_name: string; company_color: string | null;
+          vehicle_number: string | null; stop_status: string;
+        }[];
       };
     };
     Enums: {
