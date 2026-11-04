@@ -356,6 +356,29 @@ export interface Database {
         Update: Record<string, never>;
         Relationships: [];
       };
+      attendance: {
+        Row: {
+          id: string; user_id: string; work_date: string; status: "present" | "late" | "absent" | "leave";
+          check_in: string | null; check_out: string | null; note: string | null;
+          created_by: string | null; updated_by: string | null; created_at: string; updated_at: string;
+        };
+        Insert: {
+          user_id: string; work_date?: string; status?: "present" | "late" | "absent" | "leave";
+          check_in?: string | null; check_out?: string | null; note?: string | null;
+        };
+        Update: { status?: "present" | "late" | "absent" | "leave"; check_in?: string | null; check_out?: string | null; note?: string | null };
+        Relationships: [];
+      };
+      attendance_audit: {
+        Row: {
+          id: string; attendance_id: string; user_id: string; work_date: string; action: "create" | "update";
+          old_values: Record<string, string | null> | null; new_values: Record<string, string | null>;
+          changed_by: string | null; changed_by_name: string | null; changed_at: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -365,6 +388,12 @@ export interface Database {
         Args: Record<string, never>;
         Returns: { company_id: string; employees: number; drivers: number; boarding_points: number; routes: number; plannings: number; route_stops: number }[];
       };
+      record_qr_scan: { Args: { p_company: string; p_token: string }; Returns: unknown };
+      company_scans: {
+        Args: { p_company: string; p_date?: string };
+        Returns: { id: string; employee_name: string; scanned_at: string; scanned_by_name: string; other_company: boolean }[];
+      };
+      attendance_clock: { Args: { p_out?: boolean }; Returns: string };
       save_driver_route: { Args: { p_stops: unknown; p_post?: boolean }; Returns: string };
       posted_routes: {
         Args: { p_date?: string };

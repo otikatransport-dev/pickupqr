@@ -22,6 +22,8 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/dashboard/company-admin/employees", title: "Employees", text: "The people who ride and their QR codes.", cap: "employees_view" },
   { href: "/dashboard/company-admin/boarding-points", title: "Boarding points", text: "Pick-up locations for each company.", cap: "boarding_points" },
   { href: "/dashboard/company-admin/planning", title: "Planning", text: "Send drivers their shifts and see who received them.", cap: "planning" },
+  { href: "/dashboard/qr-scan", title: "QR scan", text: "Pick a company, then scan employees' QR codes.", cap: "qr_scan" },
+  { href: "/dashboard/attendance", title: "Attendance", text: "View, correct and backfill attendance. Every change is logged.", cap: "attendance_edit" },
   { href: "/dashboard/posted-routes", title: "Posted routes", text: "Routes drivers have posted for the day.", cap: "posted_routes" },
   { href: "/dashboard/company-admin/route-optimizer", title: "Route Optimizer", text: "Metro pick-up and drop-off times for each company.", cap: "route_optimizer_view" },
 ];

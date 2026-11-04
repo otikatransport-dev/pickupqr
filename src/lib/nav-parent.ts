@@ -7,6 +7,7 @@ const LABELS: Record<string, string> = {
   "/dashboard/super-admin": "Admin Centre",
   "/dashboard/company-admin": "Admin Centre",
   "/dashboard/attendance": "Attendance",
+  "/dashboard/qr-scan": "QR scan",
   "/dashboard/driver": "Driver home",
   "/dashboard/employee": "Home",
   "/dashboard/company-admin/employees": "Employees",
@@ -23,6 +24,8 @@ export function parentOf(pathname: string, role: string | null | undefined): { h
   const path = pathname.replace(/\/+$/, "") || "/";
   const home = homeFor(role);
   if (path === "/dashboard" || path === home) return null;
+  // Pages that sit under a list page rather than directly under home.
+  if (/^\/dashboard\/qr-scan\/[^/]+$/.test(path)) return { href: "/dashboard/qr-scan", label: "QR scan" };
   const parts = path.split("/").filter(Boolean); // ["dashboard","company-admin","employees","bulk"]
   // A section's top page (e.g. /dashboard/company-admin/planning) goes back to the user's own home.
   const parent = parts.length <= 3 ? home : "/" + parts.slice(0, -1).join("/");

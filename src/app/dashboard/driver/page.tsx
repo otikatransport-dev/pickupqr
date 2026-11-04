@@ -34,6 +34,10 @@ export default async function DriverPage() {
         <p className="font-medium">Plan my route</p>
         <p className="text-sm text-neutral-500">Pick companies, set the order and enter your vehicle number.</p>
       </Link>
+      <Link href="/dashboard/attendance" className="mt-3 card-link">
+        <p className="font-medium">My attendance</p>
+        <p className="text-sm text-neutral-500">Check in and out, and see your recent days.</p>
+      </Link>
       <Link href="/dashboard/posted-routes" className="mt-3 card-link">
         <p className="font-medium">Posted routes</p>
         <p className="text-sm text-neutral-500">See the routes other drivers have posted today.</p>
